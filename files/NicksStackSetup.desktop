@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Nick's Stack Setup
+Comment=Connect Nous, Telegram, and your integrations
+Exec=/usr/local/bin/nicks-stack-onboard-launch.sh
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=Utility;

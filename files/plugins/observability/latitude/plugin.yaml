@@ -1,0 +1,12 @@
+name: latitude
+version: "1.0.0"
+description: "Optional Latitude/OpenTelemetry observability for Hermes — traces agent turns, LLM calls, tool calls, and errors to Latitude via OTLP HTTP."
+author: NousResearch
+requires_env:
+  - HERMES_LATITUDE_API_KEY
+  - HERMES_LATITUDE_PROJECT
+hooks:
+  - pre_api_request
+  - post_api_request
+  - api_request_error
+  - post_tool_call
