@@ -41,7 +41,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FILES = os.path.join(HERE, "files")
 NAMESPACE = "default"
 NAME = "nicks-stack"
-VERSION = os.environ.get("VERSION", "0.1.1")
+VERSION = os.environ.get("VERSION", "0.1.2")
 API_BASE = os.environ.get("ORGO_API_BASE", "https://www.orgo.ai/api")
 API_KEY = os.environ.get("ORGO_API_KEY", "")
 
@@ -396,8 +396,15 @@ def build_and_stream():
             s = line.decode(errors="replace").rstrip()
             if s:
                 print("  " + s)
-            if "ready" in s and "golden" in s:
-                ok = True
+            if s.startswith("data: "):
+                try:
+                    event = json.loads(s.removeprefix("data: "))
+                except json.JSONDecodeError:
+                    event = {}
+                if event.get("phase") == "ready" and event.get("level") == "success":
+                    ok = True
+                if event.get("phase") == "failed" or event.get("level") == "error":
+                    ok = False
             if "build failed" in s or '"failed"' in s:
                 ok = False
     return ok
