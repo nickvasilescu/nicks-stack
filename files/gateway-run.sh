@@ -28,4 +28,9 @@ set -a
 [ -f "$HERMES_HOME/.env" ] && . "$HERMES_HOME/.env"
 set +a
 
-exec hermes gateway run --replace
+# Lifetime flock: an Orgo boot race can start TWO supervisords, each spawning
+# this service — twin gateways then SIGTERM each other via --replace every ~2s,
+# forever (field-tested; build-recipe §9). Blocking flock parks the loser.
+# --accept-hooks matches Dewey's launch line (plugins/hooks never prompt).
+mkdir -p /var/lib/orgo
+exec flock /var/lib/orgo/hermes-gateway.lock hermes gateway run --replace --accept-hooks

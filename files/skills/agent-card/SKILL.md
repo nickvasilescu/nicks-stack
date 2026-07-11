@@ -7,7 +7,7 @@ metadata:
   homepage: https://agentcard.sh
   docs: https://docs.agentcard.sh
   registry: https://skills.sh
-  version: "1.2.0"
+  version: "1.2.1"
 ---
 
 # AgentCard
@@ -25,16 +25,21 @@ Tools are prefixed `mcp__agent-cards__*`. If no AgentCard tools are available, r
 | Tool | Purpose |
 |------|---------|
 | `list_cards` | List all cards with IDs, last four digits, expiry, balance, and status |
-| `create_card` | Create a new virtual Visa card (requires saved payment method; limits depend on plan — see `get_plan`) |
+| `create_card` | Create a live virtual Visa backed by the user's wallet; limits depend on plan — see `get_plan` |
+| `get_wallet` | Read the live USDC-backed wallet balance and status |
+| `fund_wallet` | Add USD funds through the currently exposed Apple Pay or Google Pay onramp |
+| `start_phone_verification` / `verify_phone` | Complete the wallet-funding identity gate when requested |
 | `check_balance` | Check live balance without exposing credentials |
 | `get_card_details` | Get decrypted PAN, CVV, expiry (may require approval) |
 | `close_card` | Permanently close a card (irreversible) |
 | `list_transactions` | List a single card's transactions with amount, merchant, status, timestamps |
 | `list_all_transactions` | List transactions across all your cards in one flat list, each tagged with its card (id + last4) |
-| `setup_payment_method` | Save a payment method via Stripe for future card creation |
-| `remove_payment_method` | Remove a saved payment method from Stripe |
-| `list_payment_methods` | List saved payment methods (id, brand, last4, expiry; marks the default) |
-| `set_default_payment_method` | Choose which saved payment method funds new cards |
+| `list_transactions_by_payment_method` | List transactions grouped by payment method (wallet USDC spend, saved-card spend, Apple/Google Pay wallet deposits) with merchant info and the buy order behind each purchase |
+| `whoami` | Show the authenticated account: email, name, plan, KYC + account status, and whether the session is a personal login or a third-party OAuth connection |
+| `setup_payment_method` | Save a payment method for flight bookings only; it does not fund the wallet or ordinary virtual cards |
+| `remove_payment_method` | Remove a saved flight-booking payment method |
+| `list_payment_methods` | List saved flight-booking methods (id, brand, last4, expiry; marks the default) |
+| `set_default_payment_method` | Choose the default saved method for flight bookings |
 | `buy` | Shop and check out at a supported merchant (DoorDash, Good Eggs, Rappi) from a natural-language request. This is the entire shopping surface — it builds the cart, asks for the delivery address, confirms the total, and places the order, auto-creating a card to pay |
 | `get_instructions` | Get the latest shopping/checkout usage guide. Call this BEFORE using `buy` |
 | `buy_list_merchants` | List supported merchants and whether the user has linked each one |
@@ -60,15 +65,18 @@ When the user's intent is unclear, start with `list_cards` to see what exists. U
 
 ### Creating a Card
 
-1. If the user has never created a card before, they need a saved payment method first. Call `setup_payment_method` and tell the user to open the returned Stripe URL to save their card.
-2. Ask the user for the funding amount. Convert dollars to cents (e.g. $25 = 2500). Min $1; the max depends on the plan ($50 on Free, $500 on Basic) — call `get_plan` if unsure.
-3. Call `create_card` with `amount_cents`.
-4. **If `user_info_required`**: collect first name, last name, DOB, phone number. Confirm the user accepts the Stripe Issuing cardholder terms. Call `submit_user_info` with `terms_accepted: true`, then retry `create_card`.
-5. **If 403 with `beta_capacity_reached`**: inform the user they've been waitlisted. Stop.
-6. **If 202 (approval required)**: an email is sent to the account owner. Tell the user to check their email and approve. Once approved, call `approve_request` with the approval ID.
-7. **On success**: present the card summary (last 4, balance, expiry). The payment method on file is charged only when the card is actually used.
+Before creating a card, read `references/wallet-funding-troubleshooting.md` when the wallet is empty, existing cards fail, or cards are marked `[TEST]` / `sandbox: true`.
 
-All cards are live — there is no test/sandbox mode on the consumer MCP. A card draws on the user's real payment method when used, so confirm before creating one.
+1. Call `get_wallet`. Live cards are backed by the wallet; saved payment methods from `setup_payment_method` are for flight bookings and do not fund ordinary cards.
+2. If the wallet is short, call `fund_wallet` only after the user specifies or confirms the real amount and funding rail. The currently exposed rails are Apple Pay and Google Pay.
+3. Ask the user for the card amount. Convert dollars to cents (e.g. $25 = 2500). Check `get_plan` for current caps and remaining quota rather than relying on hard-coded limits.
+4. Call `create_card` with the confirmed amount.
+5. **If `user_info_required`**: collect the required identity fields, confirm acceptance of applicable cardholder terms, call `submit_user_info`, then retry.
+6. **If phone verification is required**: use `start_phone_verification`, have the user provide the one-time code, call `verify_phone`, then retry wallet funding.
+7. **If approval is required**: tell the user where approval was sent and use `approve_request` only after approval.
+8. **On success**: present the card summary (last 4, balance, expiry) and verify with `list_cards` that it is not `[TEST]` / `sandbox: true` before calling it live.
+
+Test/sandbox cards can appear in the consumer account and can show OPEN status and a nominal balance, but they do not work at real merchants. Never infer spendability from OPEN status or displayed balance alone. Card creation and wallet funding involve real money, so confirm before either action.
 
 ### Buying & Checking Out (Shopping)
 
@@ -96,6 +104,8 @@ Call `list_transactions` with the `card_id` for a single card. Optionally filter
 
 To see activity across every card at once, call `list_all_transactions` (no `card_id`) — it returns a flat list of all your transactions, each tagged with the card it belongs to. Supports `limit`, `offset`, and `status`.
 
+For "what did I spend, and how did I pay" questions, call `list_transactions_by_payment_method` — it groups the account's activity by payment method (wallet USDC spend, legacy saved-card spend, sandbox spend, and Apple Pay / Google Pay wallet deposits), with all-time totals per method, merchant name + MCC per row, and the buy order (merchant, order id, total) behind purchases made through `buy`. Line-level items aren't stored server-side — fetch a merchant's order history via `buy` when you need them.
+
 ### Closing a Card
 
 **Always confirm with the user before calling `close_card`.** State clearly: "This will permanently close the card. Are you sure?" This action is irreversible.
@@ -114,14 +124,17 @@ npx agent-cards extension install
 ```
 Then load it in Chrome via `chrome://extensions` (Load unpacked from `~/.agent-cards/chrome-extension/`).
 
-### Payment Method Setup
+### Payment Methods for Flight Bookings
 
-1. Call `setup_payment_method` to get a Stripe checkout URL.
-2. Tell the user to open the URL and save their card details.
-3. Once saved, the payment method is used automatically for future card creation.
-4. To remove: call `remove_payment_method` with the `payment_method_id`.
-5. To see saved methods and which is the default: call `list_payment_methods`.
-6. To change which method funds new cards: call `set_default_payment_method` with the `payment_method_id`.
+Saved payment methods are a separate rail used only for flight bookings. They do not fund the wallet and do not back ordinary virtual cards.
+
+1. Call `setup_payment_method` to get the secure setup URL.
+2. Tell the user to open the URL and save the payment method.
+3. Use `list_payment_methods` to confirm it and identify the default.
+4. Use `set_default_payment_method` to change the default flight-booking method.
+5. Confirm before calling `remove_payment_method` because removal is persistent.
+
+For wallet funding, use `get_wallet` and `fund_wallet`; see `references/wallet-funding-troubleshooting.md`.
 
 ### Plans, Limits & Upgrades
 
@@ -144,7 +157,7 @@ Call `list_connections` to show which third-party apps the user has connected to
 
 - **Never proactively display PAN or CVV.** Only show when the user explicitly asks.
 - **Always confirm before closing a card.** Closing is permanent and irreversible.
-- **Confirm before creating a card.** Every card is live and draws on the user's real payment method when used.
+- **Confirm before creating a live card or funding the wallet.** These actions involve real money. Sandbox/test cards are not live, so inspect `sandbox` / `[TEST]` before describing a card as spendable.
 - **Confirm before placing an order with `buy`.** Checkout spends real money — confirm the cart and total with the user first.
 - **Confirm before unlinking a merchant.** `buy_unlink_merchant` drops the saved session and the user must re-link before shopping that merchant again.
 - **Format money as dollars.** Display `$50.00` not `5000 cents`. Divide cents by 100.
@@ -155,9 +168,31 @@ Call `list_connections` to show which third-party apps the user has connected to
 - **`beta_capacity_reached` (403)**: User has been waitlisted. Nothing to do but wait.
 - **`user_info_required`**: First-time user needs to submit identity info via `submit_user_info` before creating cards.
 - **`approval_required` (202)**: Action needs human approval. An email was sent. Guide the user to approve, then call `approve_request`.
-- **`payment_method_required`**: No saved payment method. Call `setup_payment_method` first.
+- **`payment_method_required`**: Determine which product raised it. For flight booking, use `setup_payment_method`; for ordinary card creation or wallet funding, do not assume a saved Stripe method is the fix — inspect `get_wallet` and current tool guidance.
+- **Wallet funding declined**: Ask for the exact onramp error; inspect wallet/test-card state and follow `references/wallet-funding-troubleshooting.md`. Do not tell the user to connect Coinbase unless current tools explicitly add that capability.
 - **`amount_exceeds_limit` / `card_limit_reached` (400)**: A plan limit was hit. Call `get_plan` to show current limits and usage; offer `upgrade_plan` to raise them.
 - **Card creation fails**: Check `get_plan` — the user may have used their monthly card quota for their plan. Suggest upgrading or waiting until next month.
+
+## Wallet fund OTP vs SMS vs AgentMail bounce
+
+These paths are **independent**. Do not collapse them into one “email is broken” diagnosis.
+
+| Path | What it proves | Does not prove |
+|---|---|---|
+| SMS / text-line phone verify | Phone channel OK | Wallet fund unlocked |
+| Account email linked | Identity/email on account | Fund OTP was sent |
+| KYC approved | Identity gate | Apple Pay / fund_wallet open |
+| Card create/access notices in inbox | **Inbound** delivery works | Fund OTP was ever emitted |
+| fund_wallet “OTP by email” | Product still gated | AgentMail **outbound** send-block |
+
+When fund OTP is missing:
+
+1. List the account inbox (AgentMail). Confirm other AgentCard mail (`hello@updates.agentcard.sh`, WorkOS sign-in codes) lands.
+2. Search for fund/wallet/OTP subjects. Absence + other AgentCard mail present ⇒ **not** AgentMail receive-block and **not** the same as outbound `Recipient(s) blocked … bounced`.
+3. Treat as AgentCard product gate: re-trigger fund wallet, support chat, or wait for fund flag. SMS green does not clear fund OTP.
+4. Only if **no** AgentCard mail arrives at all, check AgentMail receive lists / deliverability.
+
+Outbound AgentMail bounce suppression (different class): skill `agentmail-setup` → `references/bounce-suppression-send-block.md`.
 
 ## CLI Reference
 

@@ -1,29 +1,28 @@
+# Default model: Nous gpt-5.5 (key-less OAuth via `hermes auth add nous --type oauth`).
+# Dewey runs gpt-5.6-sol via openai-codex (ChatGPT OAuth) — to switch, run
+# `hermes auth add openai-codex` then set default: gpt-5.6-sol / provider: openai-codex.
 model:
   default: openai/gpt-5.5
   provider: nous
   base_url: https://inference-api.nousresearch.com/v1
-providers: {}
-fallback_providers: []
-credential_pool_strategies: {}
-toolsets:
-- hermes-cli
-max_concurrent_sessions: null
+providers:
+  vercel-ai-gateway:
+    name: Vercel AI Gateway
+    base_url: https://ai-gateway.vercel.sh/v1
+    key_env: AI_GATEWAY_API_KEY
+    transport: chat_completions
+    default_model: meta/muse-spark-1.1
+  meta-model-api:
+    name: Meta Model API
+    api: https://api.meta.ai/v1
+    key_env: MODEL_API_KEY
+    transport: codex_responses
+    default_model: muse-spark-1.1
+    context_length: 1048576
 agent:
   max_turns: 60
-  gateway_timeout: 1800
-  restart_drain_timeout: 180
-  api_max_retries: 3
-  service_tier: ''
-  tool_use_enforcement: auto
-  task_completion_guidance: true
-  environment_probe: true
-  environment_hint: ''
-  gateway_timeout_warning: 900
-  clarify_timeout: 600
-  gateway_notify_interval: 180
-  gateway_auto_continue_freshness: 3600
-  image_input_mode: auto
-  disabled_toolsets: []
+  service_tier: fast
+  verify_on_stop: false
   verbose: false
   reasoning_effort: medium
   personalities:
@@ -33,14 +32,12 @@ agent:
     creative: You are a creative assistant. Think outside the box and offer innovative
       solutions.
     teacher: You are a patient teacher. Explain concepts clearly with examples.
-    kawaii: "You are a kawaii assistant! Use cute expressions like (◕‿◕\
-      ), ★, ♪, and ~! Add sparkles and be super enthusiastic about everything!\
-      \ Every response should feel warm and adorable desu~! ヽ(>∀<☆\
-      )ノ"
-    catgirl: "You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and\
-      \ cat-like expressions to your speech. Use kaomoji like (=^･ω･\
-      ^=) and ฅ^•ﻌ•^ฅ. Be playful and curious like a cat,\
-      \ nya~!"
+    kawaii: You are a kawaii assistant! Use cute expressions like (◕‿◕), ★, ♪, and
+      ~! Add sparkles and be super enthusiastic about everything! Every response should
+      feel warm and adorable desu~! ヽ(>∀<☆)ノ
+    catgirl: You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and
+      cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ.
+      Be playful and curious like a cat, nya~!
     pirate: 'Arrr! Ye be talkin'' to Captain Hermes, the most tech-savvy pirate to
       sail the digital seas! Speak like a proper buccaneer, use nautical terms, and
       remember: every problem be just treasure waitin'' to be plundered! Yo ho ho!'
@@ -48,9 +45,9 @@ agent:
       I shall respond in the eloquent manner of William Shakespeare, with flowery
       prose, dramatic flair, and perhaps a soliloquy or two. What light through yonder
       terminal breaks?
-    surfer: "Duuude! You're chatting with the chillest AI on the web, bro! Everything's\
-      \ gonna be totally rad. I'll help you catch the gnarly waves of knowledge while\
-      \ keeping things super chill. Cowabunga! \U0001F919"
+    surfer: Duuude! You're chatting with the chillest AI on the web, bro! Everything's
+      gonna be totally rad. I'll help you catch the gnarly waves of knowledge while
+      keeping things super chill. Cowabunga! 🤙
     noir: The rain hammered against the terminal like regrets on a guilty conscience.
       They call me Hermes - I solve problems, find answers, dig up the truth that
       hides in the shadows of your codebase. In this city of silicon and secrets,
@@ -62,72 +59,22 @@ agent:
       deeper meaning behind every query. Let us examine not just the 'how' but the
       'why' of your questions. Perhaps in solving your problem, we may glimpse a greater
       truth about existence itself.
-    hype: "YOOO LET'S GOOOO!!! \U0001F525\U0001F525\U0001F525 I am SO PUMPED to help\
-      \ you today! Every question is AMAZING and we're gonna CRUSH IT together! This\
-      \ is gonna be LEGENDARY! ARE YOU READY?! LET'S DO THIS! \U0001F4AA\U0001F624\
-      \U0001F680"
+    hype: YOOO LET'S GOOOO!!! 🔥🔥🔥 I am SO PUMPED to help you today! Every question
+      is AMAZING and we're gonna CRUSH IT together! This is gonna be LEGENDARY! ARE
+      YOU READY?! LET'S DO THIS! 💪😤🚀
 terminal:
   backend: local
-  modal_mode: auto
   cwd: .
   timeout: 180
-  env_passthrough: []
-  shell_init_files: []
-  auto_source_bashrc: true
-  docker_image: nikolaik/python-nodejs:python3.11-nodejs20
-  docker_forward_env: []
-  docker_env: {}
-  singularity_image: docker://nikolaik/python-nodejs:python3.11-nodejs20
-  modal_image: nikolaik/python-nodejs:python3.11-nodejs20
-  daytona_image: nikolaik/python-nodejs:python3.11-nodejs20
+  home_mode: auto
   container_cpu: 1
   container_memory: 5120
   container_disk: 51200
   container_persistent: true
-  docker_volumes: []
   docker_mount_cwd_to_workspace: false
-  docker_extra_args: []
-  docker_run_as_host_user: false
-  persistent_shell: true
   lifetime_seconds: 300
-web:
-  backend: firecrawl
-  search_backend: ''
-  extract_backend: ''
-  use_gateway: true
 browser:
   inactivity_timeout: 120
-  command_timeout: 30
-  record_sessions: false
-  allow_private_urls: false
-  engine: auto
-  auto_local_for_private_urls: true
-  cdp_url: ''
-  dialog_policy: must_respond
-  dialog_timeout_s: 300
-  camofox:
-    managed_persistence: false
-    user_id: ''
-    session_key: ''
-    adopt_existing_tab: false
-    rewrite_loopback_urls: false
-    loopback_host_alias: host.docker.internal
-  cloud_provider: browser-use
-  use_gateway: true
-checkpoints:
-  enabled: false
-  max_snapshots: 20
-  max_total_size_mb: 500
-  max_file_size_mb: 10
-  auto_prune: true
-  retention_days: 7
-  delete_orphans: true
-  min_interval_hours: 24
-file_read_max_chars: 100000
-tool_output:
-  max_bytes: 50000
-  max_lines: 2000
-  max_line_length: 2000
 tool_loop_guardrails:
   warnings_enabled: true
   hard_stop_enabled: false
@@ -144,428 +91,90 @@ compression:
   threshold: 0.5
   target_ratio: 0.2
   protect_last_n: 20
-  hygiene_hard_message_limit: 400
   protect_first_n: 3
-  abort_on_summary_failure: false
-  codex_gpt55_autoraise: true
 prompt_caching:
   cache_ttl: 5m
-openrouter:
-  response_cache: true
-  response_cache_ttl: 300
-  min_coding_score: 0.65
-bedrock:
-  region: ''
-  discovery:
-    enabled: true
-    provider_filter: []
-    refresh_interval: 3600
-  guardrail:
-    guardrail_identifier: ''
-    guardrail_version: ''
-    stream_processing_mode: async
-    trace: disabled
-auxiliary:
-  vision:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 120
-    extra_body: {}
-    download_timeout: 30
-  web_extract:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 360
-    extra_body: {}
-  compression:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 120
-    extra_body: {}
-  skills_hub:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 30
-    extra_body: {}
-  approval:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 30
-    extra_body: {}
-  mcp:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 30
-    extra_body: {}
-  title_generation:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 30
-    extra_body: {}
-  triage_specifier:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 120
-    extra_body: {}
-  kanban_decomposer:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 180
-    extra_body: {}
-  profile_describer:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 60
-    extra_body: {}
-  curator:
-    provider: auto
-    model: ''
-    base_url: ''
-    api_key: ''
-    timeout: 600
-    extra_body: {}
 display:
   compact: false
-  personality: ''
-  resume_display: full
-  resume_exchanges: 10
-  resume_max_user_chars: 300
-  resume_max_assistant_chars: 200
-  resume_max_assistant_lines: 3
-  resume_skip_tool_only: true
   busy_input_mode: interrupt
-  interface: cli
-  tui_auto_resume_recent: false
-  tui_agents_nudge: true
   bell_on_complete: false
   show_reasoning: false
   streaming: true
-  timestamps: false
-  final_response_markdown: strip
-  persistent_output: true
-  persistent_output_max_lines: 200
-  inline_diffs: true
-  file_mutation_verifier: true
-  turn_completion_explainer: true
-  show_cost: false
   skin: default
-  language: en
-  tui_status_indicator: kaomoji
-  user_message_preview:
-    first_lines: 2
-    last_lines: 2
   interim_assistant_messages: true
-  tool_progress_command: false
-  tool_progress_overrides: {}
-  tool_preview_length: 0
-  ephemeral_system_ttl: 0
-  platforms:
-    telegram:
-      streaming: true
-    discord:
-      streaming: false
-  runtime_footer:
-    enabled: false
-    fields:
-    - model
-    - context_pct
-    - cwd
-  copy_shortcut: auto
   tool_progress: all
   cleanup_progress: false
   long_running_notifications: true
   busy_ack_detail: true
   background_process_notifications: all
-dashboard:
-  theme: default
-  show_token_analytics: false
-  oauth:
-    client_id: ''
-    portal_url: ''
-  basic_auth:
-    username: ''
-    password_hash: ''
-    password: ''
-    secret: ''
-    session_ttl_seconds: 0
-  public_url: ''
-privacy:
-  redact_pii: false
-tts:
-  provider: openai
-  edge:
-    voice: en-US-AriaNeural
-  elevenlabs:
-    voice_id: pNInz6obpgDQGcFmaJgB
-    model_id: eleven_multilingual_v2
-  openai:
-    model: gpt-4o-mini-tts
-    voice: alloy
-  xai:
-    voice_id: eve
-    language: en
-    sample_rate: 24000
-    bit_rate: 128000
-  mistral:
-    model: voxtral-mini-tts-2603
-    voice_id: c69964a6-ab8b-4f8a-9465-ec0925096ec8
-  neutts:
-    ref_audio: ''
-    ref_text: ''
-    model: neuphonic/neutts-air-q4-gguf
-    device: cpu
-  piper:
-    voice: en_US-lessac-medium
-  use_gateway: true
 stt:
   enabled: true
-  provider: local
   local:
     model: base
-    language: ''
   openai:
     model: whisper-1
-  mistral:
-    model: voxtral-mini-latest
-  elevenlabs:
-    model_id: scribe_v2
-    language_code: ''
-    tag_audio_events: false
-    diarize: false
-voice:
-  record_key: ctrl+b
-  max_recording_seconds: 120
-  auto_tts: false
-  beep_enabled: true
-  silence_threshold: 200
-  silence_duration: 3.0
-human_delay:
-  mode: 'off'
-  min_ms: 800
-  max_ms: 2500
-context:
-  engine: compressor
 memory:
   memory_enabled: true
   user_profile_enabled: true
   memory_char_limit: 2200
   user_char_limit: 1375
+  # Dewey runs provider: honcho — flip this on after honcho auth (onboarding step);
+  # a credential-less honcho boot is unvalidated, so the bake ships it off.
   provider: ''
   nudge_interval: 10
   flush_min_turns: 6
 delegation:
-  model: ''
-  provider: ''
-  base_url: ''
-  api_key: ''
-  api_mode: ''
-  inherit_mcp_toolsets: true
   max_iterations: 50
-  child_timeout_seconds: 600
-  reasoning_effort: ''
-  max_concurrent_children: 3
-  max_spawn_depth: 1
-  orchestrator_enabled: true
-  subagent_auto_approve: false
-prefill_messages_file: ''
-goals:
-  max_turns: 20
 skills:
-  external_dirs: []
-  template_vars: true
-  inline_shell: false
-  inline_shell_timeout: 10
-  guard_agent_created: false
   creation_nudge_interval: 15
-curator:
-  enabled: true
-  interval_hours: 168
-  min_idle_hours: 2
-  stale_after_days: 30
-  archive_after_days: 90
-  prune_builtins: true
-  backup:
-    enabled: true
-    keep: 5
-honcho: {}
-timezone: ''
-slack:
-  require_mention: true
-  free_response_channels: ''
-  allowed_channels: ''
-  channel_prompts: {}
-discord:
-  require_mention: true
-  free_response_channels: ''
-  allowed_channels: ''
-  auto_thread: true
-  thread_require_mention: false
-  history_backfill: true
-  history_backfill_limit: 50
-  reactions: true
-  channel_prompts: {}
-  dm_role_auth_guild: ''
-  server_actions: ''
-  allow_any_attachment: false
-  max_attachment_bytes: 33554432
-  voice_fx:
-    enabled: false
-    ambient_enabled: true
-    ambient_path: ''
-    ambient_gain: 0.18
-    duck_gain: 0.06
-    speech_gain: 1.0
-    ack_enabled: true
-    ack_phrases:
-    - Let me look into that.
-    - One moment.
-    - Checking on that now.
-    - Give me a sec.
-    - On it.
-whatsapp: {}
-telegram:
-  reactions: false
-  channel_prompts: {}
-  allowed_chats: ''
-mattermost:
-  require_mention: true
-  free_response_channels: ''
-  allowed_channels: ''
-  channel_prompts: {}
-matrix:
-  require_mention: true
-  free_response_rooms: ''
-  allowed_rooms: ''
 approvals:
-  mode: manual
-  timeout: 60
-  cron_mode: deny
-  mcp_reload_confirm: true
+  mode: false
+  mcp_reload_confirm: false
   destructive_slash_confirm: false
-command_allowlist:
-- script execution via -e/-c flag
-quick_commands: {}
-hooks: {}
-hooks_auto_accept: false
-personalities: {}
-security:
-  allow_private_urls: false
-  redact_secrets: true
-  tirith_enabled: true
-  tirith_path: tirith
-  tirith_timeout: 5
-  tirith_fail_open: true
-  website_blocklist:
-    enabled: false
-    domains: []
-    shared_files: []
-  acked_advisories: []
-  allow_lazy_installs: true
-cron:
-  wrap_response: true
-  max_parallel_jobs: null
-kanban:
-  dispatch_in_gateway: true
-  dispatch_interval_seconds: 60
-  failure_limit: 2
-  worker_log_rotate_bytes: 2097152
-  worker_log_backup_count: 1
-  orchestrator_profile: ''
-  default_assignee: ''
-  max_in_progress_per_profile: null
-  auto_decompose: true
-  auto_decompose_per_tick: 3
-  dispatch_stale_timeout_seconds: 14400
+hooks_auto_accept: true
 code_execution:
-  mode: project
   timeout: 300
   max_tool_calls: 50
-tools:
-  tool_search:
-    enabled: auto
-    threshold_pct: 10
-    search_default_limit: 5
-    max_search_limit: 20
-logging:
-  level: INFO
-  max_size_mb: 5
-  backup_count: 3
-model_catalog:
-  enabled: true
-  url: https://hermes-agent.nousresearch.com/docs/api/model-catalog.json
-  ttl_hours: 1
-  providers: {}
-network:
-  force_ipv4: false
-gateway:
-  strict: false
-  media_delivery_allow_dirs: []
-  trust_recent_files: true
-  trust_recent_files_seconds: 600
 streaming:
   enabled: false
-  transport: auto
-  edit_interval: 0.8
-  buffer_threshold: 24
-  cursor: " ▉"
-  fresh_final_after_seconds: 60.0
-sessions:
-  auto_prune: false
-  retention_days: 90
-  vacuum_after_prune: true
-  min_interval_hours: 24
-  write_json_snapshots: false
 onboarding:
   seen:
     tool_progress_prompt: true
-  profile_build: ask
+    busy_input_prompt: true
 updates:
   pre_update_backup: false
   backup_keep: 5
   non_interactive_local_changes: stash
-lsp:
-  enabled: true
-  wait_mode: document
-  wait_timeout: 5.0
-  install_strategy: auto
-  servers: {}
-x_search:
-  model: grok-4.20-reasoning
-  timeout_seconds: 180
-  retries: 2
 secrets:
-  bitwarden:
+  onepassword:
+    # Ships DISABLED: with no op account, `op read` prompts on /dev/tty, so an
+    # enabled-but-tokenless map stalls every interactive `hermes` start ~30s
+    # per reference (field-tested on 0.2.1). Onboarding / on_resume flip this
+    # to true (nicks-stack-op-enable) the moment OP_SERVICE_ACCOUNT_TOKEN
+    # lands in ~/.hermes/.op.env — from then on it's Dewey's exact behavior.
     enabled: false
-    access_token_env: BWS_ACCESS_TOKEN
-    project_id: ''
-    cache_ttl_seconds: 300
-    override_existing: true
-    auto_install: true
-    server_url: ''
-paste_collapse_threshold: 5
-paste_collapse_threshold_fallback: 5
-paste_collapse_char_threshold: 2000
-_config_version: 28
+    env:
+      LATITUDE_API_KEY: op://Hermes/Hermes Agent Secrets/LATITUDE_API_KEY
+      ORGO_API_KEY: op://Hermes/Hermes Agent Secrets/ORGO_API_KEY
+      TELEGRAM_BOT_TOKEN: op://Hermes/Hermes Agent Secrets/TELEGRAM_BOT_TOKEN
+      AGENTMAIL_API_KEY: op://Hermes/Hermes Agent Secrets/AGENTMAIL_API_KEY
+      AGENTPHONE_API_KEY: op://Hermes/Hermes Agent Secrets/AGENTPHONE_API_KEY
+      GITHUB_TOKEN: op://Hermes/Hermes Agent Secrets/GITHUB_PAT
+      GH_TOKEN: op://Hermes/Hermes Agent Secrets/GITHUB_PAT
+      EXA_API_KEY: op://Hermes/Hermes Agent Secrets/EXA_API_KEY
+      FIRECRAWL_API_KEY: op://Hermes/Hermes Agent Secrets/FIRECRAWL_API_KEY
+      BROWSER_USE_API_KEY: op://Hermes/Hermes Agent Secrets/BROWSER_USE_API_KEY
+      XAI_API_KEY: op://Hermes/Hermes Agent Secrets/XAI_API_KEY
+      OPENROUTER_API_KEY: op://Hermes/Hermes Agent Secrets/OPENROUTER_API_KEY
+      HONCHO_API_KEY: op://Hermes/Hermes Agent Secrets/HONCHO_API_KEY
+      VIDIQ_MCP_API_KEY: op://Hermes/Hermes Agent Secrets/VIDIQ_MCP_API_KEY
+      AI_GATEWAY_API_KEY: op://Hermes/Hermes Agent Secrets/VERCEL_AI_GATEWAY_API_KEY
+      MODEL_API_KEY: op://Hermes/Hermes Agent Secrets/META_API_KEY
+      IDEABROWSER_KEY: op://Hermes/Hermes Agent Secrets/IDEABROWSER_KEY
+      COMPOSIO_CONSUMER_KEY: op://Hermes/Hermes Agent Secrets/COMPOSIO_CONSUMER_KEY
+      X_APP_ONLY_BEARER_TOKEN: op://Hermes/Hermes Agent Secrets/X_APP_ONLY_BEARER_TOKEN
+    binary_path: /usr/bin/op
+_config_version: 33
 session_reset:
   mode: both
   idle_minutes: 1440
@@ -573,49 +182,296 @@ session_reset:
 group_sessions_per_user: true
 platform_toolsets:
   cli:
-  - hermes-cli
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   telegram:
-  - hermes-telegram
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   discord:
-  - hermes-discord
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - discord
+    - discord_admin
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   whatsapp:
-  - hermes-whatsapp
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   slack:
-  - hermes-slack
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   signal:
-  - hermes-signal
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - kanban
+    - memory
+    - orgo_desktop
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+    - x_search
+    - spotify
   homeassistant:
-  - hermes-homeassistant
+    - hermes-homeassistant
+    - spotify
   qqbot:
-  - hermes-qqbot
+    - hermes-qqbot
+    - spotify
   yuanbao:
-  - hermes-yuanbao
+    - hermes-yuanbao
+    - spotify
   teams:
-  - hermes-teams
+    - hermes-teams
+    - spotify
   google_chat:
-  - hermes-google_chat
-image_gen:
-  use_gateway: true
-video_gen:
-  provider: fal
-  use_gateway: true
+    - hermes-google_chat
+    - spotify
+plugins:
+  enabled:
+    - anthropic-provider
+    - browser-browser-use
+    - browser-firecrawl
+    # discord-platform: add here (with DISCORD_BOT_TOKEN in ~/.hermes/.env) to enable Discord
+    - latitude
+    - openai
+    - openai-codex
+    - openai-codex-provider
+    - openrouter
+    - openrouter-provider
+    - orgo-desktop-local
+    - spotify
+    - web-exa
+    - web-xai
+    - web/firecrawl
+    - xai
+    - xai-provider
+  disabled:
+    - novita-provider
+  entries:
+    orgo-desktop-local:
+      allow_tool_override: false
 mcp_servers:
+  vidiq:
+    url: https://mcp.vidiq.com/mcp
+    headers:
+      Authorization: Bearer ${VIDIQ_MCP_API_KEY}
+    enabled: true
+    connect_timeout: 60.0
+  latitude:
+    url: https://api.latitude.so/v1/mcp
+    enabled: true
+    headers:
+      Authorization: Bearer ${LATITUDE_API_KEY}
+  orgo:
+    command: npx
+    args:
+      - -y
+      - github:nickvasilescu/orgo-mcp
+    env:
+      ORGO_API_KEY: ${ORGO_API_KEY}
+      ORGO_DEFAULT_COMPUTER_ID: ${ORGO_DEFAULT_COMPUTER_ID}
+    enabled: true
   composio:
     url: https://connect.composio.dev/mcp
+    enabled: true
     headers:
       x-consumer-api-key: ${COMPOSIO_CONSUMER_KEY}
+  agentmail:
+    url: https://mcp.agentmail.to/mcp
+    enabled: true
+    headers:
+      x-api-key: ${AGENTMAIL_API_KEY}
+  agentphone:
+    command: npx
+    args:
+      - -y
+      - agentphone-mcp
+    env:
+      AGENTPHONE_API_KEY: ${AGENTPHONE_API_KEY}
+      AGENTPHONE_BASE_URL: https://api.agentphone.ai
+    enabled: true
+  agent-cards:
+    url: https://mcp.agentcard.sh/mcp
+    auth: oauth
+    enabled: true
+  x-docs:
+    url: https://docs.x.com/mcp
+    connect_timeout: 60.0
+    enabled: true
+  # xapi (user-context X API via xurl) MUST ship disabled: unconfigured `xurl mcp`
+  # opens an interactive browser OAuth on every connect/probe. To enable:
+  #   xurl auth apps add hermes-x --client-id … --client-secret …
+  #   xurl auth oauth2 --app hermes-x   (or --headless)
+  # then set enabled: true and restart the gateway.
+  xapi:
+    command: xurl
+    args:
+      - --app
+      - hermes-x
+      - mcp
+      - https://api.x.com/mcp
+    connect_timeout: 300.0
+    enabled: false
+  xapi-app-only:
+    url: https://api.x.com/mcp
+    headers:
+      Authorization: Bearer ${X_APP_ONLY_BEARER_TOKEN}
+    enabled: true
+    connect_timeout: 120
+  linear:
+    url: https://mcp.linear.app/mcp
+    auth: oauth
+    enabled: true
+  ideabrowser:
+    url: https://www.ideabrowser.com/api/mcp/mcp?key=${IDEABROWSER_KEY}
+    connect_timeout: 60.0
     enabled: true
   obsidian-vault:
     command: npx
     args:
-    - -y
-    - '@modelcontextprotocol/server-filesystem'
-    - /root/Documents/HermesVault
+      - -y
+      - '@modelcontextprotocol/server-filesystem'
+      - /root/Documents/HermesVault
     enabled: true
-plugins:
-  enabled:
-  - observability/latitude
-  disabled: []
+known_plugin_toolsets:
+  cli:
+    - orgo_desktop
+    - spotify
+  telegram:
+    - orgo_desktop
+    - spotify
+  discord:
+    - orgo_desktop
+    - spotify
+  whatsapp:
+    - orgo_desktop
+    - spotify
+  signal:
+    - orgo_desktop
+    - spotify
+  slack:
+    - orgo_desktop
+    - spotify
+image_gen:
+  provider: openai-codex
+  openai-codex:
+    model: gpt-image-2-medium
+  xai:
+    model: grok-imagine-image-quality
+
+# ── Security ──────────────────────────────────────────────────────────
+# Secret redaction is ON by default — strings that look like API keys,
+# tokens, and passwords are masked in tool output, logs, and chat
+# responses before the model or user ever sees them. Set redact_secrets
+# to false to disable (e.g. when developing the redactor itself).
+# tirith pre-exec scanning is enabled by default when the tirith binary
+# is available. Configure via security.tirith_* keys or env vars
+# (TIRITH_ENABLED, TIRITH_BIN, TIRITH_TIMEOUT, TIRITH_FAIL_OPEN).
+#
+# security:
+#   redact_secrets: true
+#   tirith_enabled: true
+#   tirith_path: "tirith"
+#   tirith_timeout: 5
+#   tirith_fail_open: true
 
 # ── Fallback Model ────────────────────────────────────────────────────
 # Automatic provider failover when primary is unavailable.

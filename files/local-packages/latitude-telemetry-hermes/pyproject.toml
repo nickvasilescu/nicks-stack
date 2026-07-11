@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latitude-telemetry-hermes"
+version = "0.1.0+dewey.2"
+description = "Hermes Agent plugin that streams sessions to Latitude as OTLP traces, with Dewey-safe summaries and reasoning-effort attributes"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+dependencies = ["certifi>=2024.2.2"]
+keywords = ["hermes", "hermes-agent", "latitude", "opentelemetry", "otlp", "telemetry"]
+
+[project.entry-points."hermes_agent.plugins"]
+latitude = "latitude_telemetry_hermes"
+
+[tool.setuptools.packages.find]
+include = ["latitude_telemetry_hermes*"]
