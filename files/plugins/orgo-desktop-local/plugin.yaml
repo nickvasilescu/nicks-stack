@@ -1,0 +1,19 @@
+name: orgo-desktop-local
+version: 1.1.0
+description: >
+  Same-box Orgo Desktop API tools (loopback :8080). Prefer these over cloud
+  Orgo MCP GUI when Hermes runs inside the VM. Auth: VNC_PASSWORD / ORGO_DESKTOP_API_TOKEN.
+  Includes drag, click_path, and visual noop/verify fingerprints.
+author: Nick Vasilescu
+provides_tools:
+  - orgo_desktop_doctor
+  - orgo_desktop_screenshot
+  - orgo_desktop_click
+  - orgo_desktop_drag
+  - orgo_desktop_click_path
+  - orgo_desktop_type
+  - orgo_desktop_key
+  - orgo_desktop_bash
+  - orgo_desktop_scroll
+  - orgo_desktop_open_url
+  - orgo_desktop_wait

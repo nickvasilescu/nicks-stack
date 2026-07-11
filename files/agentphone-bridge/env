@@ -1,0 +1,29 @@
+# ==========================================================================
+# Nick's Stack — AgentPhone webhook bridge tuning (NON-SECRET defaults)
+# ==========================================================================
+# Byte-derived from the working Dewey VM, with the identity fields blanked.
+# The bridge itself reads secrets (AGENTPHONE_API_KEY, AGENTPHONE_AGENT_ID,
+# AGENTPHONE_NUMBER_ID) from ~/.hermes/.env — never from this file.
+#
+# AGENTPHONE_PUBLIC_URL is deliberately UNSET: without it the bridge spawns
+# its own cloudflared *quick tunnel* and self-registers the webhook each
+# boot. Set it only if you run your own named tunnel.
+
+# --- who may text the agent (comma-separated E.164; empty = deny-all) -----
+AGENTPHONE_ALLOWED_SENDERS=
+# numbers that may use the FULL toolset (subset of allowed senders)
+AGENTPHONE_FULL_ACCESS_NUMBERS=
+
+# --- Hermes toolsets per trust tier ---------------------------------------
+AGENTPHONE_HERMES_TOOLSETS=web,vision
+AGENTPHONE_FULL_HERMES_TOOLSETS=all
+AGENTPHONE_HERMES_MAX_TURNS=90
+
+# --- conversational polish (Dewey-proven values) ---------------------------
+AGENTPHONE_ACK_ENABLED=1
+AGENTPHONE_ACK_MODE=smart
+AGENTPHONE_ACK_DELAY_SECONDS=1.25
+AGENTPHONE_ACK_MIN_CHARS=80
+AGENTPHONE_TYPING_REFRESH_SECONDS=25
+AGENTPHONE_REACTIONS_ENABLED=1
+AGENTPHONE_REACTION_MODE=smart
